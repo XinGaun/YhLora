@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.FirmwareDao">
+	<!-- 查询所有固件 -->
+	<select id="selectFirmware" resultType="java.util.HashMap"
+		parameterType="java.util.HashMap">
+		SELECT
+		hubs.model,hubs.client,hub_otas.id,hub_otas.version,hub_otas.path,hubs.status,hubs.addr
+		FROM hub_otas LEFT JOIN hubs ON hubs.addr = hub_otas.hub WHERE 1=1
+		<if test="model!=null">
+			and hubs.model = #{model}
+		</if>
+		<if test="status!=null">
+			and hubs.status = ${status}
+		</if>
+		<if test="addr!=null">
+			and hubs.addr ~ #{addr}
+		</if>
+		<if test="client!=null">
+			and hubs.client ~ #{client}
+		</if>
+		<if test="version!=null">
+			and version = #{version}
+		</if>
+		ORDER BY id
+		<if test="sort!=null">
+			<if test="sort==0">
+				DESC
+			</if>
+			<if test="sort==1">
+				ASC
+			</if>
+		</if>
+		LIMIT #{page} OFFSET #{nums}
+	</select>
+	<!-- 添加固件信息 -->
+	<insert id="insertFirmware" parameterType="java.util.HashMap"
+		keyProperty="id">
+		INSERT INTO hub_otas(hub,version,path)
+		values(#{addr},#{version},#{path})
+	</insert>
+	<!-- 删除固件 -->
+	<delete id="deteleFirmware" parameterType="java.util.HashMap">
+		DELETE FROM hub_otas
+		WHERE id =#{id}
+	</delete>
+	<!-- 更新固件 -->
+	<update id="updateFirmware" parameterType="java.util.HashMap">
+		UPDATE hub_otas
+		<trim prefix="set" suffixOverrides=",">
+			<if test="hub!=null">
+				hub=#{hub},
+			</if>
+			<if test="version!=null">
+				version=#{version},
+			</if>
+			<if test="path!=null">
+				path=#{path},
+			</if>
+			<if test="size!=null">
+				size=#{size},
+			</if>
+		</trim>
+		WHERE id = #{id}
+	</update>
+	<!-- 通过ID查询固件结果集 -->
+	<select id="queryFirmware" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT * FROM hub_otas LEFT JOIN hubs ON hubs.addr =
+		hub_otas.hub WHERE id=#{id} ORDER BY id DESC
+	</select>
+	<!-- 查询固件信息总条数 -->
+	<select id="countFirmware" parameterType="java.util.HashMap"
+		resultType="int">
+		SELECT count(*) FROM hub_otas LEFT JOIN hubs ON hubs.addr =
+		hub_otas.hub WHERE 1=1
+		<if test="midel!=null">
+			and hubs.model = #{model}
+		</if>
+		<if test="customer!=null">
+			and hubs.status = #{status}
+		</if>
+		<if test="addr!=null">
+			and hubs.addr ~ #{addr}
+		</if>
+		<if test="client!=null">
+			and hubs.client ~ #{client}
+		</if>
+		<if test="version!=null">
+			and version = #{version}
+		</if>
+	</select>
+	<!-- 更新固件文件地址 -->
+	<update id="updateFirmwarePath" parameterType="java.util.HashMap">
+		UPDATE hub_otas
+		SET path =#{path},size=#{size} WHERE id = #{id}
+	</update>
+</mapper>

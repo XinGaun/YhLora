@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.HistoryDao">
+	<!-- 查询所有历史详情信息 -->
+	<select id="selectHistory" resultType="java.util.HashMap"
+		parameterType="java.util.HashMap">
+		SELECT id,hub_id,addr,date,reading,valve,voltage,signal FROM meter_readings
+		WHERE 1=1
+		<if test="addr!=null">
+			and addr =#{addr}
+		</if>
+		<if test="start_date!=null">
+			and date >= to_date(#{start_date},'yyyy-mm-dd')
+		</if>
+		<if test="stop_date!=null">
+			and date &lt;= to_date(#{stop_date},'yyyy-mm-dd')
+		</if>
+		ORDER BY date DESC
+		<!-- <if test="sort!=null">
+			<if test="sort==0">
+				DESC
+			</if>
+			<if test="sort==1">
+				ASC
+			</if>
+		</if> -->
+		LIMIT #{page} OFFSET #{nums}
+	</select>
+	<!-- 添加历史详情信息,返回主键ID -->
+	<insert id="insertHistory" parameterType="java.util.HashMap"
+		keyProperty="id">
+		INSERT INTO
+		meter_readings(hub_id,addr,date,reading,valve,voltage,signal)
+		VALUES(#{hub_id},#{addr},#{date},#{reading},#{valve},#{voltage},#{signal})
+	</insert>
+	<!-- 通过ID删除历史详情信息 -->
+	<delete id="deteleHistory" parameterType="java.util.HashMap">
+		DELETE FROM meter_readings
+		WHERE id = #{id}
+	</delete>
+	<!-- 更新历史详情信息 -->
+	<update id="updateHistory" parameterType="java.util.HashMap">
+		UPDATE meter_readings
+		<trim prefix="set" suffixOverrides=",">
+			<if test="hub_id!=null">
+				hub_id=#{hub_id},
+			</if>
+			<if test="addr!=null">
+				addr=#{addr},
+			</if>
+			<if test="date!=null">
+				date=#{date},
+			</if>
+			<if test="reading!=null">
+				reading=#{reading},
+			</if>
+			<if test="valve!=null">
+				valve=#{valve},
+			</if>
+			<if test="voltage!=null">
+				voltage=#{voltage},
+			</if>
+			<if test="signal!=null">
+				signal=#{signal},
+			</if>
+		</trim>
+		WHERE _id = #{_id}
+	</update>
+	<!-- 通过ID查询历史详情信息 -->
+	<select id="queryHistory" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT id,hub_id,addr,date,reading,valve,voltage,signal FROM meter_readings
+		WHERE 1=1 and id =#{id}
+	</select>
+	<!-- 查询历史记录总条数 -->
+	<select id="countHistory" parameterType="java.util.HashMap"
+		resultType="int">
+		SELECT COUNT(*) FROM meter_readings WHERE 1=1
+		<if test="addr!=null">
+			and addr =#{addr}
+		</if>
+		<if test="start_date!=null">
+			and date >= to_date(#{start_date},'yyyy-mm-dd')
+		</if>
+		<if test="stop_date!=null">
+			and date &lt;= to_date(#{stop_date},'yyyy-mm-dd')
+		</if>
+	</select>
+</mapper>

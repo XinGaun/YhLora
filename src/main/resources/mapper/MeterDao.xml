@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.MeterDao">
+	<!-- 查询所有表具信息 -->
+	<select id="selectMeter" resultType="java.util.HashMap">
+		select
+		hubs.addr hub_addr,hubs.client,meters.id,meters.addr,meters.sn,meters.ch_sprf,meters.repeat_addr,meter_readings.hub_id,meter_readings.date,meter_readings.reading,meter_readings.voltage,meter_readings.valve,meter_readings.signal
+		FROM meters LEFT JOIN meter_readings ON
+		meters.hub_id=meter_readings.hub_id
+		and meter_readings.date=(SELECT max(date) FROM meter_readings WHERE meter_readings.addr=meters.addr)
+		LEFT JOIN hubs ON
+		hubs.id=meters.hub_id WHERE 1=1
+
+		<if test="client!=null">
+			and hubs.client ~ #{client}
+		</if>
+		<if test="addr!=null">
+			and meters.addr ~ #{addr}
+		</if>
+		<if test="repeat_addr!=null">
+			and hubs.addr~#{repeat_addr}
+		</if>
+		<if test="date!=null">
+			and meter_readings.date = '${date}'
+		</if>
+		ORDER BY meter_readings.date
+		<if test="sort!=null">
+			<if test="sort==0">
+				DESC
+			</if>
+			<if test="sort==1">
+				ASC
+			</if>
+		</if>
+		LIMIT #{page} OFFSET #{nums}
+	</select>
+	<!-- 添加表具信息,返回自增ID -->
+	<insert id="insertMeter" parameterType="java.util.HashMap"
+		keyProperty="id">
+		INSERT INTO
+		meters(hub_id,sn,addr,ch_sprf
+		<if test="repeat_addr!=null">
+			,repeat_addr
+		</if>
+		)
+		VALUES(${hub_id},${sn},#{addr},${ch_sprf}
+		<if test="repeat_addr!=null">
+			,#{repeat_addr}
+		</if>
+		)
+	</insert>
+	<!-- 通过ID删除一个表具信息 -->
+	<delete id="deteleMeter" parameterType="java.util.HashMap">
+		DELETE FROM meters WHERE
+		id = #{id}
+	</delete>
+	<!-- 通过ID更新一个表具信息 -->
+	<update id="updateMeter" parameterType="java.util.HashMap">
+		UPDATE meters
+		<trim prefix="set" suffixOverrides=",">
+			<if test="hub_id!=null">
+				hub_id = #{hub_id},
+			</if>
+			<if test="sn!=null">
+				sn = #{sn},
+			</if>
+			<if test="addr!=null">
+				addr = #{addr},
+			</if>
+			<if test="ch_sprf!=null">
+				ch_sprf = #{ch_sprf},
+			</if>
+			<if test="repeat_addr!=null">
+				repeat_addr = #{repeat_addr},
+			</if>
+		</trim>
+		WHERE id = #{id}
+	</update>
+	<!-- 根据表具ID查询表具信息 -->
+	<select id="queryMeter" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		select
+		hubs.client,meters.id,meters.addr,meters.sn,meters.ch_sprf,meters.repeat_addr,meter_readings.hub_id,meter_readings.date,meter_readings.reading,meter_readings.voltage,meter_readings.valve,meter_readings.signal
+		FROM meters LEFT JOIN meter_readings ON
+		meters.hub_id=meter_readings.hub_id
+		and meter_readings.date=(SELECT max(date) FROM meter_readings WHERE meter_readings.addr=meters.addr)
+		LEFT JOIN hubs ON
+		hubs.id=meters.hub_id WHERE 1=1 and meters,id=#{id}
+	</select>
+	<!-- 查询表具总条数 -->
+	<select id="countMeter" parameterType="java.util.HashMap"
+		resultType="int">
+		select COUNT(*) FROM meters LEFT JOIN meter_readings ON
+		meters.hub_id=meter_readings.hub_id and meter_readings.date=(SELECT max(date) FROM meter_readings WHERE meter_readings.addr=meters.addr)
+		LEFT JOIN hubs ON
+		hubs.id=meters.hub_id
+		WHERE 1=1 
+		<if test="client!=null">
+			and hubs.client ~ #{client}
+		</if>
+		<if test="addr!=null">
+			and meters.addr ~ #{addr}
+		</if>
+		<if test="repeat_addr!=null">
+			and meters.repeat_addr~#{repeat_addr}
+		</if>
+		<if test="date!=null">
+			and meter_readings.date = '${date}'
+		</if>
+	</select>
+	<!-- 所有条数 -->
+	<select id="totalMeter" resultType="int">
+		select COUNT(*) FROM meters
+		WHERE 1=1
+	</select>
+</mapper>
